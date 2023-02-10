@@ -1,0 +1,16 @@
+{
+  "name": "express-nixpacks-example",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node app.mjs"
+  },
+  "engines": {
+    "node": "18.x"
+  },
+  "dependencies": {
+    "express": "~4.16.1",
+    "morgan": "~1.9.1"
+  }
+}
