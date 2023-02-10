@@ -1,6 +1,7 @@
 # waypoint-plugin-nixpacks
 
-<img width="618" alt="image" src="https://user-images.githubusercontent.com/26389321/218116820-748dd789-7f55-40e9-abb2-44cd21cd64a7.png">
+![CleanShot 2023-02-10 at 09 39 09@2x](https://user-images.githubusercontent.com/26389321/218119583-9dabe325-9295-4098-90ac-b9f32ccb7b74.png)
+
 
 This [Waypoint][waypoint] plugin builds OCI images using [nixpacks][nixpacks].
 
