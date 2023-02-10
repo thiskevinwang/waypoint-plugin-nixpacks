@@ -1,3 +1,4 @@
 .waypoint
 waypoint-plugin-nixpacks
 bin/
+docker_auth.json
