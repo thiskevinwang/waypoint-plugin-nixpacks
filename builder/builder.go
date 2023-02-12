@@ -39,7 +39,6 @@ func (b *Builder) BuildFunc() interface{} {
 }
 
 const (
-	DEFAULT_SOURCE   = "./"
 	DEFAULT_PLATFORM = "linux/amd64"
 )
 
@@ -55,12 +54,15 @@ func (b *Builder) Build(
 
 	// set config defaults
 	if b.config.Source == "" {
-		b.config.Source = DEFAULT_SOURCE
+		// this should be the directory where the waypoint.hcl file is located
+		b.config.Source = src.Path
 	}
 
 	if b.config.Platform == "" {
 		b.config.Platform = DEFAULT_PLATFORM
 	}
+
+	log.Info("config values", "source", b.config.Source, "platform", b.config.Platform)
 
 	// check for nixpack
 	nixpacksPath, err := exec.LookPath("nixpacks")
@@ -72,7 +74,7 @@ func (b *Builder) Build(
 	u.Step(terminal.StatusOK, fmt.Sprintf("Nixpacks installed at: %q", nixpacksPath))
 
 	cmd := exec.Command(nixpacksPath,
-		"build", ".",
+		"build", b.config.Source,
 		"--platform", b.config.Platform,
 		"--name", fmt.Sprintf("waypoint.local/%s", src.App))
 
