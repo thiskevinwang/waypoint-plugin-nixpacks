@@ -6,7 +6,6 @@ app "express-nixpacks-example" {
       use "docker" {
         image = "thekevinwang/express-nixpacks-example"
         tag   = "latest"
-        encoded_auth = filebase64("${path.app}/docker_auth.json")
       }
     }
   }
