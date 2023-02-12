@@ -12,10 +12,11 @@ build:
 	@echo ""
 	@echo "==> Compile Plugin"
 
-	@go build -o ./bin/waypoint-plugin-${PLUGIN_NAME} ./main.go
+	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./bin/waypoint-plugin-${PLUGIN_NAME} ./main.go
 
 install:
 	@echo ""
 	@echo "==> Installing Plugin"
 
-	@cp bin/waypoint-plugin-nixpacks examples/node-express
+	@rm -f examples/node-express/waypoint-plugin-nixpacks
+	@cp -r bin/waypoint-plugin-nixpacks examples/node-express
