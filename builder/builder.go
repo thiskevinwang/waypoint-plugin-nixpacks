@@ -12,6 +12,8 @@ import (
 
 type BuildConfig struct {
 	Source string `hcl:"source,optional"`
+	// linux/amd64 (default) | linux/arm64
+	Platform string `hc:"platform,optional"`
 }
 
 type Builder struct {
@@ -23,7 +25,8 @@ func (b *Builder) Config() (interface{}, error) {
 	return &b.config, nil
 }
 
-// Implement ConfigurableNotify
+// ConfigSet is called after a configuration has been decoded
+// we can use this to validate the config
 func (b *Builder) ConfigSet(config interface{}) error {
 	// TODO(kevin): validate config
 	return nil
@@ -35,6 +38,11 @@ func (b *Builder) BuildFunc() interface{} {
 	return b.Build
 }
 
+const (
+	DEFAULT_SOURCE   = "./"
+	DEFAULT_PLATFORM = "linux/amd64"
+)
+
 func (b *Builder) Build(
 	ctx context.Context,
 	ui terminal.UI,
@@ -45,8 +53,13 @@ func (b *Builder) Build(
 	defer u.Close()
 	u.Update("Building application")
 
+	// set config defaults
 	if b.config.Source == "" {
-		b.config.Source = "./"
+		b.config.Source = DEFAULT_SOURCE
+	}
+
+	if b.config.Platform == "" {
+		b.config.Platform = DEFAULT_PLATFORM
 	}
 
 	// check for nixpack
@@ -58,7 +71,10 @@ func (b *Builder) Build(
 
 	u.Step(terminal.StatusOK, fmt.Sprintf("Nixpacks installed at: %q", nixpacksPath))
 
-	cmd := exec.Command(nixpacksPath, "build", ".", "--name", fmt.Sprintf("waypoint.local/%s", src.App))
+	cmd := exec.Command(nixpacksPath,
+		"build", ".",
+		"--platform", b.config.Platform,
+		"--name", fmt.Sprintf("waypoint.local/%s", src.App))
 
 	sg := ui.StepGroup()
 	step := sg.Add("Building app with nixpacks...")
