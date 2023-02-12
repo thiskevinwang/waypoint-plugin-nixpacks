@@ -1,7 +1,9 @@
 project = "express-nixpacks-example"
 app "express-nixpacks-example" {
   build {
-    use "nixpacks" {}
+    use "nixpacks" {
+      source = path.app
+    }
     registry {
       use "docker" {
         image = "thekevinwang/express-nixpacks-example"
