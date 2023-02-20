@@ -25,6 +25,10 @@ The Waypoint runner (such as the CLI) that ends up picking up a job (such as `wa
 
 Check out the [examples](./examples) folder for usage examples.
 
+Also checkout https://github.com/thiskevinwang/waypoint-github-actions-test/blob/main/.github/workflows/workflow_dispatch.yml for full end to end usage in GitHub actions.
+
+- This linked workflow uses a GitHub runner to connect to the Waypoint server on HCP, build `waypoint-plugin-nixpacks`, build the example app, and publish the resulting Docker image to DockerHub.
+
 [builder]: https://developer.hashicorp.com/waypoint/docs/extending-waypoint/plugin-interfaces/builder
 [waypoint]: https://github.com/hashicorp/waypoint
 [nixpacks]: https://github.com/railwayapp/nixpacks
