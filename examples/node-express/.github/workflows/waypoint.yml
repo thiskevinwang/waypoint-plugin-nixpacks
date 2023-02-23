@@ -1,0 +1,79 @@
+# This workflow uses a GitHub action runner & Waypoint CLI,
+# which effectively functions as a Waypoint runner.
+
+name: Waypoint
+run-name: Waypoint
+
+on:
+  # Using workflow dispatch for ease of manual testing.
+  workflow_dispatch:
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Waypoint CLI
+        run: |
+          wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt update && sudo apt install waypoint
+
+      # This step ensures the Waypoint CLI connects to a Waypoint Serer, hosted on HCP.
+      # Note the 2 secrets here.
+      - name: Create Waypoint Context
+        run: |
+          waypoint context create \
+            -server-addr=${{ secrets.WAYPOINT_SERVER_ADDR }} \
+            -server-auth-token=${{ secrets.WAYPOINT_SERVER_TOKEN }} \
+            -server-require-auth=true \
+            -server-platform="hcp" \
+            -set-default \
+            hcp-waypoint-gh-runner
+
+      # This is an optional step to ensure the docker registry plugin works
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Nixpacks is required by waypoint-plugin-nixpacks at runtime
+      - name: Install Nixpacks
+        run: |
+          curl -sSL https://nixpacks.com/install.sh | sudo bash
+
+      # protoc is required to build the waypoint-plugin-nixpacks plugin
+      - name: Install protoc
+        run: |
+          sudo apt update && sudo apt install -y protobuf-compiler
+          protoc --version
+
+      # proto-gen-go is required to build the waypoint-plugin-nixpacks plugin
+      - name: Install proto-gen-go
+        run: |
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      # Checkout the waypoint-plugin-nixpacks plugin so we can build the plugin.
+      - name: Checkout waypoint-plugin-nixpacks
+        uses: actions/checkout@v3
+        with:
+          repository: thiskevinwang/waypoint-plugin-nixpacks
+          path: waypoint-plugin-nixpacks
+
+      # Build the waypoint-plugin-nixpacks plugin
+      # - Note: This step could be replaced by fetching a pre-built plugin
+      #   from a GitHub release or other artifact store.
+      - name: Build waypoint-plugin-nixpacks plugin
+        working-directory: waypoint-plugin-nixpacks
+        run: |
+          make
+
+      # Run Waypoint, using the example app's waypoint.hcl file
+      - name: Build project with waypoint
+        # Note that the build step will have built and copied a plugin binary
+        # to the same directory as the waypoint.hcl file.
+        working-directory: waypoint-plugin-nixpacks/examples/node-express
+        run: |
+          waypoint init
+          waypoint build
